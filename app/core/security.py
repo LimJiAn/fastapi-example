@@ -29,6 +29,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
+def decode_access_token(token: str) -> dict:
+    """JWT 액세스 토큰 디코딩"""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return payload
+    except JWTError:
+        return {}
 
 def verify_token(token: str) -> Optional[str]:
     """JWT 토큰 검증 및 사용자 ID 추출"""

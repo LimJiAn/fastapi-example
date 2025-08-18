@@ -1,66 +1,61 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 
-from app.core.security import verify_token
-from app.redis.session import get_session, validate_session, delete_session
-from app.schemas.auth import CurrentUser
+from app.db.session import get_db
+from app.crud.user import user as user_crud
+from app.services.auth_service import AuthService
+from app.models.user import User
+from app.redis.session import get_session
+from app.core.security import decode_access_token
+
 
 # HTTP Bearer 토큰 스키마
 security = HTTPBearer()
 
+
+def get_auth_service() -> AuthService:
+    """AuthService 의존성 주입"""
+    return AuthService(user_crud=user_crud)
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> CurrentUser:
-    """현재 로그인된 사용자 조회 (JWT 토큰 + Redis 세션 기반)
-    
-    Args:
-        credentials: HTTP Bearer 토큰
-
-    Returns:
-        CurrentUser: 현재 사용자 정보
-        
-    Raises:
-        HTTPException: 인증 실패 시 401 에러
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="유효하지 않은 토큰입니다",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service)
+) -> User:
+    """현재 로그인된 사용자 조회"""
+    # JWT 토큰에서 사용자 ID 추출
     try:
-        # JWT 토큰에서 사용자 ID 추출
-        print("credentials.credentials:", credentials.credentials)
-        user_id_str = verify_token(credentials.credentials)
-        
-        if user_id_str is None:
-            raise credentials_exception
-        
-        user_id = int(user_id_str)
-
-        # Redis 세션 검증
-        is_valid_session = validate_session(user_id, credentials.credentials)
-        print(is_valid_session)
-        if not is_valid_session:
+        payload = decode_access_token(credentials.credentials)
+        user_id: str = payload.get("user_id")
+        if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="세션이 만료되었거나 유효하지 않습니다",
+                detail="토큰이 유효하지 않습니다",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-
-    except (ValueError, TypeError):
-        raise credentials_exception
-    
-    # 세션에서 사용자 정보 조회
-    session_data = get_session(user_id)
-    if session_data and session_data.get("user_info"):
-        user_info = session_data["user_info"]
-        current_user = CurrentUser(
-            id=user_info.get("id"),
-            email=user_info.get("email"),
-            fullname=user_info.get("fullname"),
-            created=user_info.get("created")
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="토큰이 유효하지 않습니다",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    else:
-        #TODO: 세션이 없는 경우
-        pass
-    return current_user
+    # Redis에서 세션 확인
+    session_data = get_session(int(user_id))
+    if not session_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="세션이 만료되었습니다",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # 데이터베이스에서 사용자 조회
+    user = auth_service.get_user_by_id(user_id=int(user_id), db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="사용자를 찾을 수 없습니다",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
