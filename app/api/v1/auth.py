@@ -1,31 +1,58 @@
 from fastapi import APIRouter, Depends
-from typing import Dict, Any
+from sqlalchemy.orm import Session
 
+from app.core.database import get_db
 from app.services.auth_service import AuthService
 from app.api.v1.deps import get_current_user
+from app.schemas.auth import (
+    SignUpRequest, 
+    LoginRequest, 
+    SignUpResponse, 
+    LoginResponse, 
+    LogoutResponse,
+    CurrentUser
+)
 
 router = APIRouter()
 
-@router.post("/signup")
-async def signup(user_data: Dict[str, Any] = None):
-    """회원가입"""
-    if user_data is None:
-        user_data = {"email": "test@example.com", "fullname": "Test User"}
+@router.post("/signup", response_model=SignUpResponse)
+async def signup(
+    user_data: SignUpRequest,
+    db: Session = Depends(get_db)
+):
+    """회원가입
     
-    result = await AuthService.signup(user_data)
-    return result
-
-@router.post("/login") 
-async def login(credentials: Dict[str, Any] = None):
-    """로그인"""
-    if credentials is None:
-        credentials = {"email": "test@example.com", "password": "testpassword"}
+    계정 정보(fullname, email, password)를 입력받아 계정을 생성합니다.
     
-    result = await AuthService.login(credentials)
-    return result
+    - **fullname**: 사용자 이름
+    - **email**: 유효한 이메일 주소
+    - **password**: 비밀번호
 
-@router.post("/logout")
-async def logout(current_user = Depends(get_current_user)):
-    """로그아웃"""
-    result = await AuthService.logout("temp_user_id")
-    return result
+    Returns:
+        SignUpResponse: 생성된 사용자 정보
+
+    Raises:
+        HTTPException 409: 이미 존재하는 이메일
+        HTTPException 400: 유효하지 않은 입력 데이터
+    """
+    return await AuthService.signup(user_data, db)
+
+@router.post("/login", response_model=LoginResponse)
+async def login(
+    credentials: LoginRequest,
+    db: Session = Depends(get_db)
+):
+    """로그인
+
+    email, password를 입력받아 계정에 로그인하고, 해당 로그인 세션의 access token을 반환합니다.
+
+    - **email**: 등록된 이메일 주소
+    - **password**: 계정 비밀번호
+
+    Returns:
+        LoginResponse: 액세스 토큰과 사용자 정보
+
+    Raises:
+        HTTPException 401: 이메일 또는 비밀번호 오류
+    """
+    return await AuthService.login(credentials, db)

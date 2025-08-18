@@ -24,7 +24,7 @@ if config.config_file_name is not None:
 from app.models.user import User
 from app.models.board import Board
 from app.models.post import Post
-from app.db.base import Base
+from app.core.base import Base
 
 target_metadata = Base.metadata
 

@@ -20,7 +20,7 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
-    created_at: datetime
+    created: datetime
     
     class Config:
         from_attributes = True

@@ -9,7 +9,7 @@ app = FastAPI(
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
 )
-# API 라우터 등록 (통합된 api_router 사용)
+# API 라우터
 app.include_router(api_router, prefix=settings.API_V1)
 
 # 루트 엔드포인트
