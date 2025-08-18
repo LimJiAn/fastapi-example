@@ -1,9 +1,14 @@
 from logging.config import fileConfig
+import sys
+import os
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+# 프로젝트 루트를 Python path에 추가
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -16,14 +21,12 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-from models.user import User
-from models.board import Board
-from models.post import Post
-from db.base import Base
+from app.models.user import User
+from app.models.board import Board
+from app.models.post import Post
+from app.db.base import Base
 
-target_metadata = Base.metadata  # None에서 Base.metadata로 변경
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -43,14 +46,12 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("postgresql://developer:devpassword@postgres:5432/developer")
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        compare_type=True,  # Enable type comparison
-        compare_server_default=True,  # Enable server default comparison
     )
 
     with context.begin_transaction():
@@ -72,9 +73,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata,
-            compare_type=True,  # Enable type comparison
-            compare_server_default=True,  # Enable server default comparison
+            connection=connection, target_metadata=target_metadata
         )
 
         with context.begin_transaction():
