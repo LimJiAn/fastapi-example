@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from typing import Dict, Any
 
-from services.auth_service import AuthService
-from api.v1.deps import get_current_user
+from app.services.auth_service import AuthService
+from app.api.v1.deps import get_current_user
 
 router = APIRouter()
 

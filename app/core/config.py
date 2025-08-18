@@ -4,6 +4,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
+    # 기본 설정
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    DEBUG: bool = ENVIRONMENT == "development"
+    
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Elice Board API")
+    VERSION: str = os.getenv("VERSION", "1.0.0")
+    
+    API_V1: str = os.getenv("API_V1", "/api/v1")
+
     # 데이터베이스 설정
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
@@ -14,5 +23,9 @@ class Settings:
         "REDIS_URL", 
         "redis://redis:6379/0"
     )
-    
+    # JWT 설정
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "elice-secret-key")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
 settings = Settings()
