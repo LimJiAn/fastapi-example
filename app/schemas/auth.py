@@ -15,7 +15,6 @@ class LoginRequest(BaseModel):
 
 class SignUpResponse(BaseModel):
     """회원가입 응답 스키마"""
-    message: str
     id: int
     email: str
     fullname: str
@@ -23,9 +22,8 @@ class SignUpResponse(BaseModel):
 
 class LoginResponse(BaseModel):
     """로그인 응답 스키마"""
-    message: str
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "Bearer"
     user: 'UserInfo'
 
 class UserInfo(BaseModel):

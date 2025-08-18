@@ -8,7 +8,7 @@ from app.models.user import User
 from app.schemas.auth import SignUpRequest, LoginRequest, SignUpResponse, LoginResponse, CurrentUser, LogoutResponse, UserInfo
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.core.config import settings
-from app.core.redis_session import session as redis_session
+from app.core.redis_session import session
 
 
 class AuthService:
@@ -17,14 +17,14 @@ class AuthService:
     @staticmethod
     async def signup(request: SignUpRequest, db: Session) -> SignUpResponse:
         """회원가입 처리
-        
+
         Args:
             user_data: 회원가입 요청 데이터
             db: 데이터베이스 세션
-            
+
         Returns:
             SignUpResponse: 회원가입 응답
-            
+
         Raises:
             HTTPException: 이메일 중복 시 409 에러
         """
@@ -69,10 +69,10 @@ class AuthService:
         Args:
             request: 로그인 자격 증명
             db: 데이터베이스 세션
-            
+
         Returns:
             LoginResponse: 로그인 응답 (액세스 토큰 포함)
-            
+
         Raises:
             HTTPException: 인증 실패 시 401 에러
         """
@@ -101,7 +101,7 @@ class AuthService:
                 "fullname": user.fullname,
                 "created": user.created.isoformat() if user.created else None
             }
-            await redis_session.create_session(user.id, access_token, user_info)
+            await session.create_session(user.id, access_token, user_info)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -116,4 +116,11 @@ class AuthService:
                 fullname=user.fullname,
                 created=user.created
             )
+        )
+
+    @staticmethod
+    async def logout(current_user: CurrentUser) -> LogoutResponse:
+        await session.delete_session(current_user.id)
+        return LogoutResponse(
+            message="로그아웃 되었습니다"
         )

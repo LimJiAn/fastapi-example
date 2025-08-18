@@ -21,9 +21,9 @@ async def signup(
     db: Session = Depends(get_db)
 ):
     """회원가입
-    
+
     계정 정보(fullname, email, password)를 입력받아 계정을 생성합니다.
-    
+
     - **fullname**: 사용자 이름
     - **email**: 유효한 이메일 주소
     - **password**: 비밀번호
@@ -56,3 +56,23 @@ async def login(
         HTTPException 401: 이메일 또는 비밀번호 오류
     """
     return await AuthService.login(credentials, db)
+
+@router.post("/logout", response_model=LogoutResponse)
+async def logout(
+    current_user: CurrentUser = Depends(get_current_user)
+):
+    print(current_user)
+    """로그아웃
+
+    현재 로그인 세션을 로그아웃합니다.
+
+    Headers:
+        Authorization: Bearer {access_token}
+
+    Returns:
+        LogoutResponse: 로그아웃 완료 메시지
+
+    Raises:
+        HTTPException 401: 유효하지 않은 토큰
+    """
+    return await AuthService.logout(current_user)
