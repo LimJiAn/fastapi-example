@@ -8,7 +8,7 @@ from app.models.user import User
 from app.schemas.auth import SignUpRequest, LoginRequest, SignUpResponse, LoginResponse, CurrentUser, LogoutResponse, UserInfo
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.core.config import settings
-from app.core.redis_session import session
+from app.redis.session import create_session, delete_session  # Redis 세션 관리
 
 
 class AuthService:
@@ -101,7 +101,7 @@ class AuthService:
                 "fullname": user.fullname,
                 "created": user.created.isoformat() if user.created else None
             }
-            await session.create_session(user.id, access_token, user_info)
+            create_session(user.id, access_token, user_info)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -120,7 +120,7 @@ class AuthService:
 
     @staticmethod
     async def logout(current_user: CurrentUser) -> LogoutResponse:
-        await session.delete_session(current_user.id)
+        delete_session(current_user.id)
         return LogoutResponse(
             message="로그아웃 되었습니다"
         )

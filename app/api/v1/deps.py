@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.security import verify_token
-from app.core.redis_session import session
+from app.redis.session import get_session, validate_session, delete_session
 from app.schemas.auth import CurrentUser
 
 # HTTP Bearer 토큰 스키마
@@ -38,7 +38,7 @@ async def get_current_user(
         user_id = int(user_id_str)
 
         # Redis 세션 검증
-        is_valid_session = await session.validate_session(user_id, credentials.credentials)
+        is_valid_session = validate_session(user_id, credentials.credentials)
         print(is_valid_session)
         if not is_valid_session:
             raise HTTPException(
@@ -51,7 +51,7 @@ async def get_current_user(
         raise credentials_exception
     
     # 세션에서 사용자 정보 조회
-    session_data = await session.get_session(user_id)
+    session_data = get_session(user_id)
     if session_data and session_data.get("user_info"):
         user_info = session_data["user_info"]
         current_user = CurrentUser(
