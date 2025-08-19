@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
-from app.services.auth_service import AuthService
+from app.services.auth import AuthService
 from app.schemas.auth import SignUpRequest, LoginRequest
 from app.models.user import User
 from datetime import datetime

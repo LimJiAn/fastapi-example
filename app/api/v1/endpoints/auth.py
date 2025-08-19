@@ -26,7 +26,7 @@ async def signup(
     계정 정보(fullname, email, password)를 입력받아 계정을 생성합니다.
 
     - **fullname**: 사용자 이름
-    - **email**: 유효한 이메일 주소
+    - **email**: 이메일 주소
     - **password**: 비밀번호
 
     Returns:

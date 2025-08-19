@@ -4,15 +4,16 @@ from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
-from app.schemas.auth import SignUpRequest
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserLogin]):
     
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
+        """이메일로 사용자 조회"""
         return db.query(User).filter(User.email == email).first()
     
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
+        """사용자 생성"""
         db_obj = User(
             fullname=obj_in.fullname,
             email=obj_in.email,
@@ -24,6 +25,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserLogin]):
         return db_obj
     
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
+        """사용자 인증"""
         user = self.get_by_email(db, email=email)
         if not user:
             return None

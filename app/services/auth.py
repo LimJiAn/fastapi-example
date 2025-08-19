@@ -50,7 +50,7 @@ class AuthService:
                 id=new_user.id,
                 email=new_user.email,
                 fullname=new_user.fullname,
-                created=new_user.created
+                created_at=new_user.created_at
             )
         except IntegrityError:
             db.rollback()
@@ -88,7 +88,7 @@ class AuthService:
                 "id": user.id,
                 "email": user.email,
                 "fullname": user.fullname,
-                "created": user.created.isoformat() if user.created else None
+                "created_at": user.created_at.isoformat() if user.created_at else None
             }
             create_session(user.id, access_token, user_info)
         except Exception as e:
@@ -102,7 +102,7 @@ class AuthService:
                 id=user.id,
                 email=user.email,
                 fullname=user.fullname,
-                created=user.created
+                created_at=user.created_at
             )
         )
 

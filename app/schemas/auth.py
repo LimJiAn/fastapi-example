@@ -1,15 +1,9 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
 from datetime import datetime
 
 class SignUpRequest(BaseModel):
     """회원가입 요청 스키마"""
     fullname: str
-    email: EmailStr
-    password: str
-    
-class LoginRequest(BaseModel):
-    """로그인 요청 스키마"""
     email: EmailStr
     password: str
 
@@ -18,7 +12,12 @@ class SignUpResponse(BaseModel):
     id: int
     email: str
     fullname: str
-    created: datetime
+    created_at: datetime
+
+class LoginRequest(BaseModel):
+    """로그인 요청 스키마"""
+    email: EmailStr
+    password: str
 
 class LoginResponse(BaseModel):
     """로그인 응답 스키마"""
@@ -31,7 +30,7 @@ class UserInfo(BaseModel):
     id: int
     email: str
     fullname: str
-    created: datetime
+    created_at: datetime
 
 class LogoutResponse(BaseModel):
     """로그아웃 응답 스키마"""

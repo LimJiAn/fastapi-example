@@ -6,7 +6,7 @@ from app.core.config import settings
 
 # 전역 Redis 클라이언트
 redis_client = redis.Redis.from_url(
-    settings.REDIS_URL,        # 예: redis://localhost:6379/0
+    settings.REDIS_URL,
     decode_responses=True,
     health_check_interval=30,
 )
@@ -18,7 +18,7 @@ def create_session(user_id: int, access_token: str, user_info: Dict[str, Any]) -
         "user_id": user_id,
         "access_token": access_token,
         "user_info": user_info,
-        "created": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "expired": (datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )).isoformat(),
