@@ -29,5 +29,5 @@ class User(Base):
         back_populates="owner", cascade="all, delete-orphan", passive_deletes=True
     )
     posts: Mapped[List["Post"]] = relationship(
-        back_populates="author", cascade="all, delete-orphan", passive_deletes=True
+        back_populates="owner", cascade="all, delete-orphan", passive_deletes=True
     )

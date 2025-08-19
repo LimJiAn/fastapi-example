@@ -18,7 +18,7 @@ class Post(Base):
     board_id: Mapped[int] = mapped_column(
         ForeignKey("boards.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    author_id: Mapped[int] = mapped_column(
+    owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
@@ -30,4 +30,4 @@ class Post(Base):
 
     # Relationships
     board: Mapped["Board"] = relationship(back_populates="posts")
-    author: Mapped["User"] = relationship(back_populates="posts")
+    owner: Mapped["User"] = relationship(back_populates="posts")
