@@ -115,5 +115,4 @@ async def delete(
     
     권한: 게시판 생성자만 삭제 가능
     """
-    await board_service.delete(board_id, current_user, db)
-    return {"message": "게시판이 성공적으로 삭제되었습니다"}
+    return await board_service.delete(board_id, current_user, db)

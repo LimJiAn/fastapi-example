@@ -13,7 +13,7 @@ app = FastAPI(
 )
 add_pagination(app)
 # API 라우터
-app.include_router(api_router, prefix=settings.API_V1)
+app.include_router(api_router, prefix=settings.API_PATH)
 
 # 루트 엔드포인트
 @app.get("/", tags=["Root"])

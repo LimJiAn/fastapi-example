@@ -10,8 +10,8 @@ class Settings:
     
     PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Elice Board API")
     VERSION: str = os.getenv("VERSION", "1.0.0")
-    
-    API_V1: str = os.getenv("API_V1", "/api/v1")
+
+    API_PATH: str = os.getenv("API_PATH", "/api/v1")
 
     DEFAULT_PAGE_SIZE: int = int(os.getenv("DEFAULT_PAGE_SIZE", "20"))
     MAX_PAGE_SIZE: int = int(os.getenv("MAX_PAGE_SIZE", "100"))
