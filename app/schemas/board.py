@@ -14,7 +14,6 @@ class BoardSortOption(str, Enum):
     # name = "name"              # 이름 순
 
 
-# Board schemas
 class BoardBase(BaseModel):
     name: str
     public: bool

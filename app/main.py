@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from fastapi_pagination import add_pagination
 
-from app.api.v1.api import api_router
+from app.api.v1.api import api_v1
 from app.core.config import settings
 
 app = FastAPI(
@@ -13,7 +13,7 @@ app = FastAPI(
 )
 add_pagination(app)
 # API 라우터
-app.include_router(api_router, prefix=settings.API_PATH)
+app.include_router(api_v1, prefix=settings.API_PATH)
 
 # 루트 엔드포인트
 @app.get("/", tags=["Root"])

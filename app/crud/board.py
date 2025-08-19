@@ -71,4 +71,13 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
         """게시판의 게시글 수 조회"""
         return db.query(Post).filter(Post.board_id == board_id).count()
 
+    def check_board_access(self, db: Session, user_id: int, board_id: int) -> bool:
+        """게시판 접근 권한 확인"""
+        board = db.query(Board).filter(Board.id == board_id).first()
+        if not board:
+            return False
+        if not board:
+            return False
+        return board.public or board.owner_id == user_id
+
 board = CRUDBoard(Board)

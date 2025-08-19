@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.crud.user import user as user_crud
 from app.crud.board import board as board_crud
+from app.crud.post import post as post_crud
 from app.services.auth import AuthService
 from app.services.board import BoardService
+from app.services.post import PostService
 from app.models.user import User
 from app.redis.session import get_session
 from app.core.security import decode_access_token
@@ -25,6 +27,11 @@ def get_auth_service() -> AuthService:
 def get_board_service() -> BoardService:
     """BoardService 의존성 주입"""
     return BoardService(board_crud=board_crud)
+
+
+def get_post_service() -> PostService:
+    """PostService 의존성 주입"""
+    return PostService(post_crud=post_crud, board_crud=board_crud)
 
 
 async def get_current_user(
