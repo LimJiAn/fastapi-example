@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from fastapi_pagination import add_pagination
+
 from app.api.v1.api import api_router
 from app.core.config import settings
 
@@ -9,6 +11,7 @@ app = FastAPI(
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
 )
+add_pagination(app)
 # API 라우터
 app.include_router(api_router, prefix=settings.API_V1)
 

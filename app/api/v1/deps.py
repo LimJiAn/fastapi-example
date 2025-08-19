@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -19,6 +20,11 @@ security = HTTPBearer()
 def get_auth_service() -> AuthService:
     """AuthService 의존성 주입"""
     return AuthService(user_crud=user_crud)
+
+
+def get_board_service() -> BoardService:
+    """BoardService 의존성 주입"""
+    return BoardService(board_crud=board_crud)
 
 
 async def get_current_user(

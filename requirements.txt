@@ -10,6 +10,8 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 bcrypt==3.2.2 # has no attribute '__about__'
+fastapi-pagination==0.13.3
+sqlakeyset>=2.0.0
 
 # 테스트 의존성
 pytest==8.4.1

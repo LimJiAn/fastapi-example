@@ -1,23 +1,21 @@
-from typing import Dict, Any, List
-
+from typing import Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 
 from app.crud.board import CRUDBoard
-from app.models.board import Board
-from app.schemas.board import BoardCreate, BoardUpdate, BoardResponse, BoardListResponse
+from app.schemas.board import BoardCreate, BoardUpdate, BoardResponse, BoardSortOption
 from app.schemas.auth import CurrentUser
 
 
 class BoardService:
     """게시판 관련 서비스"""
-    
+
     def __init__(self, board_crud: CRUDBoard):
         self.board_crud = board_crud
 
-    async def create_board(self, request: BoardCreate, current_user: CurrentUser, db: Session) -> BoardResponse:
-        """게시판 생성 처리
+    async def create(self, request: BoardCreate, current_user: CurrentUser, db: Session) -> BoardResponse:
+        """게시판 생성
 
         Args:
             request: 게시판 생성 요청 데이터
@@ -25,48 +23,57 @@ class BoardService:
             db: 데이터베이스 세션
 
         Returns:
-            BoardResponse: 게시판 생성 응답
+            BoardResponse: 생성된 게시판 정보
 
         Raises:
-            HTTPException: 이름 중복 시 409 에러
+            HTTPException: 게시판 이름 중복 시 400
         """
-        try:
-            # 이름 중복 확인
-            existing_board = self.board_crud.get_by_name(db, name=request.name)
-            if existing_board:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="이미 존재하는 게시판 이름입니다"
-                )
-            
-            # 게시판 생성
-            new_board = self.board_crud.create_with_user(
-                db, 
-                obj_in=request, 
-                created_by=current_user.id
+        # 게시판 이름 중복 확인
+        board = self.board_crud.get_by_name(db, name=request.name)
+        if board:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 존재하는 게시판 이름입니다"
             )
-            
+
+        try:
+            new_board = self.board_crud.create_with_user(
+                db, obj_in=request, owner_id=current_user.id
+            )
             db.commit()
+            
             return BoardResponse(
                 id=new_board.id,
                 name=new_board.name,
                 public=new_board.public,
-                created_by=new_board.created_by,
-                created=new_board.created,
-                updated=new_board.updated,
+                owner_id=new_board.owner_id,
+                created_at=new_board.created_at,
+                updated_at=new_board.updated_at,
                 post_count=0
             )
         except IntegrityError:
             db.rollback()
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="게시판 생성 중 오류가 발생했습니다"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="게시판 생성에 실패했습니다"
             )
-        except Exception:
-            db.rollback()
-            raise
 
-    async def get_board(self, board_id: int, current_user: CurrentUser, db: Session) -> BoardResponse:
+    def list(self, current_user: CurrentUser, db: Session, sort: BoardSortOption = BoardSortOption.created_at):
+        """접근 가능한 게시판들의 SQLAlchemy Query 반환 (Cursor Pagination용)
+
+        Args:
+            current_user: 현재 사용자
+            db: 데이터베이스 세션
+            sort: 정렬 옵션
+
+        Returns:
+            SQLAlchemy Query: paginate 함수에서 사용할 쿼리
+        """
+        # 본인이 생성한 게시판 + 공개 게시판 쿼리
+        # Cursor pagination을 위해 정렬 기준과 ID 함께 정렬 (안정적인 정렬 보장)
+        return self.board_crud.get_accessible_boards(db, current_user.id, sort)
+
+    async def get(self, board_id: int, current_user: CurrentUser, db: Session) -> BoardResponse:
         """게시판 조회
 
         Args:
@@ -86,28 +93,24 @@ class BoardService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="게시판을 찾을 수 없습니다"
             )
-        
-        # 권한 확인: 본인이 생성하거나 공개된 게시판만 조회 가능
-        if not board.public and board.created_by != current_user.id:
+        if not board.public and board.owner_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="게시판에 접근할 권한이 없습니다"
             )
-        
         # 게시글 수 계산
         post_count = self.board_crud.get_post_count(db, board_id=board_id)
-        
         return BoardResponse(
             id=board.id,
             name=board.name,
             public=board.public,
-            created_by=board.created_by,
-            created=board.created,
-            updated=board.updated,
+            owner_id=board.owner_id,
+            created_at=board.created_at,
+            updated_at=board.updated_at,
             post_count=post_count
         )
 
-    async def update_board(self, board_id: int, request: BoardUpdate, current_user: CurrentUser, db: Session) -> BoardResponse:
+    async def update(self, board_id: int, request: BoardUpdate, current_user: CurrentUser, db: Session) -> BoardResponse:
         """게시판 수정
 
         Args:
@@ -128,24 +131,20 @@ class BoardService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="게시판을 찾을 수 없습니다"
             )
-        
-        # 권한 확인: 본인이 생성한 게시판만 수정 가능
-        if board.created_by != current_user.id:
+        if board.owner_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="게시판을 수정할 권한이 없습니다"
             )
-        
+        # 이름 변경 시 중복 확인
+        if request.name and request.name != board.name:
+            existing_board = self.board_crud.get_by_name(db, name=request.name)
+            if existing_board:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="이미 존재하는 게시판 이름입니다"
+                )
         try:
-            # 이름 중복 확인 (다른 게시판과 중복되는지)
-            if request.name and request.name != board.name:
-                existing_board = self.board_crud.get_by_name(db, name=request.name)
-                if existing_board and existing_board.id != board_id:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="이미 존재하는 게시판 이름입니다"
-                    )
-            
             updated_board = self.board_crud.update(db, db_obj=board, obj_in=request)
             db.commit()
             
@@ -156,22 +155,19 @@ class BoardService:
                 id=updated_board.id,
                 name=updated_board.name,
                 public=updated_board.public,
-                created_by=updated_board.created_by,
-                created=updated_board.created,
-                updated=updated_board.updated,
+                owner_id=updated_board.owner_id,
+                created_at=updated_board.created_at,
+                updated_at=updated_board.updated_at,
                 post_count=post_count
             )
         except IntegrityError:
             db.rollback()
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="게시판 수정 중 오류가 발생했습니다"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="게시판 수정에 실패했습니다"
             )
-        except Exception:
-            db.rollback()
-            raise
 
-    async def delete_board(self, board_id: int, current_user: CurrentUser, db: Session) -> dict:
+    async def delete(self, board_id: int, current_user: CurrentUser, db: Session) -> None:
         """게시판 삭제
 
         Args:
@@ -192,55 +188,19 @@ class BoardService:
                 detail="게시판을 찾을 수 없습니다"
             )
         
-        # 권한 확인: 본인이 생성한 게시판만 삭제 가능
-        if board.created_by != current_user.id:
+        # 권한 확인: 게시판 생성자만 삭제 가능
+        if board.owner_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="게시판을 삭제할 권한이 없습니다"
             )
-        
+
         try:
-            self.board_crud.remove(db, id=board_id)
+            self.board_crud.delete(db, id=board_id)
             db.commit()
-            return {"message": "게시판이 삭제되었습니다"}
-        except Exception:
+        except Exception as e:
             db.rollback()
-            raise
-
-    async def list_boards(self, current_user: CurrentUser, db: Session, sort_by_posts: bool = False) -> BoardListResponse:
-        """게시판 목록 조회
-
-        Args:
-            current_user: 현재 사용자
-            db: 데이터베이스 세션
-            sort_by_posts: 게시글 수로 정렬 여부
-
-        Returns:
-            BoardListResponse: 게시판 목록
-
-        Notes:
-            본인이 생성하거나 공개된 게시판만 조회 가능
-        """
-        boards = self.board_crud.get_accessible_boards(
-            db, 
-            user_id=current_user.id,
-            sort_by_posts=sort_by_posts
-        )
-        
-        board_responses = []
-        for board in boards:
-            post_count = self.board_crud.get_post_count(db, board_id=board.id)
-            board_responses.append(BoardResponse(
-                id=board.id,
-                name=board.name,
-                public=board.public,
-                created_by=board.created_by,
-                created=board.created,
-                updated=board.updated,
-                post_count=post_count
-            ))
-        
-        return BoardListResponse(
-            boards=board_responses,
-            total=len(board_responses)
-        )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="게시판 삭제에 실패했습니다"
+            )

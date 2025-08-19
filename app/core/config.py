@@ -13,6 +13,9 @@ class Settings:
     
     API_V1: str = os.getenv("API_V1", "/api/v1")
 
+    DEFAULT_PAGE_SIZE: int = int(os.getenv("DEFAULT_PAGE_SIZE", "20"))
+    MAX_PAGE_SIZE: int = int(os.getenv("MAX_PAGE_SIZE", "100"))
+
     # 데이터베이스 설정
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
