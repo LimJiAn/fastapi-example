@@ -4,7 +4,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.crud.user import user as user_crud
-from app.services.auth_service import AuthService
+from app.crud.board import board as board_crud
+from app.services.auth import AuthService
+from app.services.board import BoardService
 from app.models.user import User
 from app.redis.session import get_session
 from app.core.security import decode_access_token

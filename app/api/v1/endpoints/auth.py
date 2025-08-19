@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.services.auth_service import AuthService
+from app.services.auth import AuthService
 from app.api.v1.deps import get_auth_service, get_current_user
 from app.schemas.auth import (
     SignUpRequest, 

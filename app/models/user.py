@@ -1,18 +1,33 @@
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from __future__ import annotations
+
+from datetime import datetime
+from typing import List
+
+from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.base_class import Base
 
 
 class User(Base):
     __tablename__ = "users"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    fullname = Column(String(100), nullable=False)
-    email = Column(String(255), unique=True, index=True, nullable=False)
-    password = Column(String(255), nullable=False)
-    created = Column(DateTime(timezone=True), server_default=func.now())
-    
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fullname: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
     # Relationships
-    boards = relationship("Board", back_populates="creator")
-    posts = relationship("Post", back_populates="author")
+    boards: Mapped[List["Board"]] = relationship(
+        back_populates="owner", cascade="all, delete-orphan", passive_deletes=True
+    )
+    posts: Mapped[List["Post"]] = relationship(
+        back_populates="author", cascade="all, delete-orphan", passive_deletes=True
+    )
