@@ -204,10 +204,10 @@ bash scripts/create_dummy_data.sh 50 100 1000
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │    users    │         │   boards    │         │    posts    │
 ├─────────────┤         ├─────────────┤         ├─────────────┤
-│ id (PK)     │────┐    │ id (PK)     │────┐    │ id (PK)     │
-│ fullname    │    │    │ name        │    │    │ title       │
-│ email       │    │    │ public      │    │    │ content     │
-│ password    │    │    │ owner_id(FK)│◄───┘    │ board_id(FK)│◄───┘
+│ id (PK)     │────┐    │ id (PK)     │─────────│ id (PK)     │────┐
+│ fullname    │    │    │ name        │         │ title       │    │
+│ email       │    │    │ public      │         │ content     │    │
+│ password    │    │    │ owner_id(FK)│         │ board_id(FK)│◄───┘
 │ created_at  │    │    │ posts_count │         │ owner_id(FK)│◄───┐
 │ updated_at  │    │    │ created_at  │         │ created_at  │    │
 └─────────────┘    │    │ updated_at  │         │ updated_at  │    │
@@ -245,22 +245,31 @@ SELECT * FROM boards ORDER BY posts_count DESC;
 
 ## 🔧 개발 환경 설정
 
-### 수동 설정 (개발용)
-
+### Docker 사용
 ```bash
-# 1. 의존성 설치
+# 전체 환경 한 번에 시작
+make build && make up
+```
+
+### 로컬 개발 (Poetry 사용)
+```bash
+# 1. Poetry 설치 (처음 한 번만)
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="/Users/$USER/.local/bin:$PATH"
+
+# 2. 의존성 설치
 poetry install
 
-# 2. 환경 변수 설정
+# 3. 환경 변수 설정
 cp .env.example .env
 # .env 파일 수정
 
-# 3. 데이터베이스만 시작
+# 4. 데이터베이스만 시작
 docker-compose up -d postgres redis
 
-# 4. 마이그레이션 실행
+# 5. 마이그레이션 실행
 poetry run alembic upgrade head
 
-# 5. 개발 서버 실행
+# 6. 개발 서버 실행
 poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
