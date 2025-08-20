@@ -12,7 +12,7 @@ class CRUDPost(CRUDBase[Post, PostCreate, PostUpdate]):
     
     def create_with_user(self, db: Session, *, obj_in: PostCreate, owner_id: int, board_id: int) -> Post:
         """사용자 ID와 게시판 ID로 게시글 생성"""
-        obj_in_data = obj_in.dict()
+        obj_in_data = obj_in.model_dump()
         db_obj = self.model(
             **obj_in_data,
             owner_id=owner_id,

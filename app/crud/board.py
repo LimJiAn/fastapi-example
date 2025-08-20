@@ -15,7 +15,7 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
 
     def create_with_user(self, db: Session, *, obj_in: BoardCreate, owner_id: int) -> Board:
         """사용자 ID와 함께 게시판 생성"""
-        obj_in_data = obj_in.dict()
+        obj_in_data = obj_in.model_dump()
         db_obj = self.model(
             **obj_in_data,
             owner_id=owner_id
