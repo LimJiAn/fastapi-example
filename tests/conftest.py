@@ -1,8 +1,5 @@
-import os
-import tempfile
-from datetime import datetime
 from typing import Generator, Dict, Any
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,7 +13,6 @@ from app.db.session import get_db
 from app.core.security import create_access_token, get_password_hash
 from app.models import User, Board, Post
 from app.db.base_class import Base
-from app.redis import session as redis_session
 
 
 # SQLite 테스트 데이터베이스 설정

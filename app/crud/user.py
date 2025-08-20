@@ -1,5 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.user import User
@@ -10,7 +11,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserLogin]):
     
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         """이메일로 사용자 조회"""
-        return db.query(User).filter(User.email == email).first()
+        stmt = select(User).where(User.email == email)
+        result = db.execute(stmt)
+        return result.scalars().first()
     
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
         """사용자 생성"""

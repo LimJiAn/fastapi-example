@@ -43,7 +43,7 @@ async def create(
     return await board_service.create(board_data, current_user, db)
 
 @router.get("/", response_model=BoardListResponse)
-async def list(
+def list(
     params: TotalCursorParams = Depends(),
     sort: BoardSortOption = Query(
         BoardSortOption.created_at,
@@ -68,8 +68,8 @@ async def list(
     Returns:
         BoardListResponse: 게시판 목록 정보
     """
-    query = board_service.list(current_user, db, sort)
-    return paginate(query, params)
+    stmt = board_service.list(current_user, db, sort)
+    return paginate(db, stmt, params)
 
 @router.get("/{board_id}", response_model=BoardResponse)
 async def get(

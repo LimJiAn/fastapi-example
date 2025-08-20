@@ -46,7 +46,7 @@ async def create(
     return await post_service.create(board_id, post_data, current_user, db)
 
 @router.get("/boards/{board_id}/posts", response_model=PostListResponse)
-async def list(
+def list(
     board_id: int = Path(..., description="게시판 ID"),
     params: TotalCursorParams = Depends(),
     sort: PostSortOption = Query(
@@ -75,8 +75,8 @@ async def list(
         HTTPException 404: 게시판 없음
         HTTPException 403: 접근 권한 없음
     """
-    query = post_service.list(board_id, current_user, db, sort)
-    return paginate(query, params)
+    stmt = post_service.list(board_id, current_user, db, sort)
+    return paginate(db, stmt, params)
 
 @router.get("/posts/{post_id}", response_model=PostResponse)
 async def get(

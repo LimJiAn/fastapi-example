@@ -70,15 +70,16 @@ def assert_pagination_response(response_data: dict):
     """페이지네이션 응답 구조 검증"""
     assert "items" in response_data
     assert "total" in response_data
-    assert "next_cursor" in response_data
-    assert "has_next" in response_data
+    assert "next_page" in response_data
+    assert "previous_page" in response_data
     
     assert isinstance(response_data["items"], list)
     assert isinstance(response_data["total"], int)
-    assert isinstance(response_data["has_next"], bool)
-    # next_cursor는 None이거나 문자열
-    if response_data["next_cursor"] is not None:
-        assert isinstance(response_data["next_cursor"], str)
+    # next_page와 previous_page는 None이거나 문자열
+    if response_data["next_page"] is not None:
+        assert isinstance(response_data["next_page"], str)
+    if response_data["previous_page"] is not None:
+        assert isinstance(response_data["previous_page"], str)
 
 
 def assert_error_response(response_data: dict, status_code: int, message: str = None):
