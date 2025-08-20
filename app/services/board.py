@@ -91,8 +91,6 @@ class BoardService:
         if not board.public and board.owner_id != current_user.id:
             raise ForbiddenError("게시판에 접근할 권한이 없습니다")
 
-        #TODO: 게시글 수 계산
-        post_count = self.board_crud.get_post_count(db, board_id=board_id)
         return BoardResponse(
             id=board.id,
             name=board.name,
@@ -100,7 +98,7 @@ class BoardService:
             owner_id=board.owner_id,
             created_at=board.created_at,
             updated_at=board.updated_at,
-            post_count=post_count
+            post_count=board.posts_count
         )
 
     async def update(self, board_id: int, request: BoardUpdate, current_user: CurrentUser, db: Session) -> BoardResponse:
@@ -132,9 +130,6 @@ class BoardService:
             updated_board = self.board_crud.update(db, db_obj=board, obj_in=request)
             db.commit()
             
-            # 게시글 수 계산
-            post_count = self.board_crud.get_post_count(db, board_id=board_id)
-            
             return BoardResponse(
                 id=updated_board.id,
                 name=updated_board.name,
@@ -142,7 +137,7 @@ class BoardService:
                 owner_id=updated_board.owner_id,
                 created_at=updated_board.created_at,
                 updated_at=updated_board.updated_at,
-                post_count=post_count
+                post_count=updated_board.posts_count
             )
         except IntegrityError:
             db.rollback()

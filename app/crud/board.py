@@ -1,11 +1,9 @@
-from typing import List, Optional
-from datetime import datetime
+from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_
 
 from app.crud.base import CRUDBase
 from app.models.board import Board
-from app.models.post import Post
 from app.schemas.board import BoardCreate, BoardUpdate, BoardSortOption
 
 
@@ -47,11 +45,8 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
         )
         # 정렬 옵션에 따른 처리
         if sort == BoardSortOption.posts:
-            # 게시글 수로 정렬 (많은순)
-            query = query.outerjoin(Post).group_by(Board.id).order_by(
-                func.count(Post.id).desc(),
-                Board.id.desc()
-            )
+            # 게시글 수로 정렬 (많은순) - 트리거로 관리되는 posts_count 컬럼 사용
+            query = query.order_by(Board.posts_count.desc(), Board.id.desc())
         # elif sort == BoardSortOption.name:
         #     # 이름순 정렬
         #     query = query.order_by(Board.name.asc(), Board.id.desc())
@@ -66,10 +61,6 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
             query = query.order_by(Board.created_at.desc(), Board.id.desc())
         
         return query
-
-    def get_post_count(self, db: Session, *, board_id: int) -> int:
-        """게시판의 게시글 수 조회"""
-        return db.query(Post).filter(Post.board_id == board_id).count()
 
     def check_board_access(self, db: Session, user_id: int, board_id: int) -> bool:
         """게시판 접근 권한 확인"""
