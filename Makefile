@@ -54,7 +54,7 @@ migrate:
 
 seed:
 	@echo "🌱 더미 데이터 생성 중..."
-	bash scripts/create_dummy_data.sh 10 200 10000
+	bash scripts/create_dummy_data.sh 10 100 1000
 
 # 테스트
 test:

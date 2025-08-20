@@ -2,11 +2,11 @@
 # 사용법:
 #   bash scripts/create_dummy_data.sh [사용자수] [게시판수] [게시글수]
 # 예시:
-#   bash scripts/create_dummy_data.sh 20 100 1000
+#   bash scripts/create_dummy_data.sh 10 100 1000
 
 set -e
 # 기본값 설정
-USER_COUNT=${1:-20}
+USER_COUNT=${1:-10}
 BOARD_COUNT=${2:-100}
 POST_COUNT=${3:-1000}
 
@@ -29,6 +29,5 @@ echo "✅ 더미 데이터 생성 완료!"
 echo ""
 echo "💡 생성된 데이터 확인 방법:"
 echo "  - API 테스트: http://localhost:8000/docs"
-echo "  - 게시판 목록: GET /api/v1/boards/"
 echo "  - 사용자 로그인: POST /api/v1/auth/login"
 echo "    (이메일: 생성된 사용자 중 하나, 비밀번호: qwer1234)"
