@@ -172,7 +172,7 @@ class TestUpdateBoard:
         token = create_access_token(data={"user_id": str(another_user.id)})
         headers = {"Authorization": f"Bearer {token}"}
         
-        with patch('app.redis.session.validate_session') as mock_validate:
+        with patch('app.core.session.validate_session') as mock_validate:
             mock_validate.return_value = True
             
             update_data = {
@@ -245,7 +245,7 @@ class TestDeleteBoard:
         token = create_access_token(data={"user_id": str(another_user.id)})
         headers = {"Authorization": f"Bearer {token}"}
         
-        with patch('app.redis.session.validate_session') as mock_validate:
+        with patch('app.core.session.validate_session') as mock_validate:
             mock_validate.return_value = True
             
             response = client.delete(f"/api/v1/boards/{test_board.id}", headers=headers)

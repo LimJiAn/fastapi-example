@@ -113,7 +113,7 @@ def another_user(db: Session) -> User:
 @pytest.fixture(scope="session", autouse=True)
 def mock_redis_session():
     """모든 테스트에서 Redis 세션 검증을 전역으로 모킹."""
-    with patch('app.redis.session.validate_session') as mock_validate, \
+    with patch('app.core.session.validate_session') as mock_validate, \
          patch('app.api.v1.deps.validate_session') as mock_deps_validate:
         mock_validate.return_value = True
         mock_deps_validate.return_value = True

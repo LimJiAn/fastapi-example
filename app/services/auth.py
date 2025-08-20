@@ -10,7 +10,7 @@ from app.schemas.auth import SignUpRequest, LoginRequest, SignUpResponse, LoginR
 from app.schemas.user import UserCreate
 from app.core.security import create_access_token
 from app.core.exceptions import AuthenticationError, ConflictError, InternalServerError
-from app.redis.session import create_session, delete_session
+from app.core.session import create_session, delete_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

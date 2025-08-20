@@ -11,7 +11,7 @@ from app.services.auth import AuthService
 from app.services.board import BoardService
 from app.services.post import PostService
 from app.models.user import User
-from app.redis.session import validate_session
+from app.core.session import validate_session
 from app.core.security import decode_access_token
 from app.core.exceptions import (
     AuthenticationError
