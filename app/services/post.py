@@ -1,13 +1,16 @@
-from typing import Dict, Any
+import logging
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, status
 
 from app.crud.post import CRUDPost
 from app.crud.board import CRUDBoard
 from app.schemas.post import PostCreate, PostUpdate, PostResponse, PostSortOption
 from app.schemas.auth import CurrentUser
+from app.core.exceptions import NotFoundError, ForbiddenError, ConflictError, InternalServerError
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class PostService:
     """게시글 관련 서비스"""
@@ -29,19 +32,13 @@ class PostService:
             PostResponse: 생성된 게시글 정보
 
         Raises:
-            HTTPException: 게시판 접근 권한 없음 시 403
+            HTTPException: 게시판 없을 시 404, 게시판 접근 권한 없음 시 403
         """
         board = self.board_crud.get(db, id=board_id)
         if not board:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="존재하지 않는 게시판입니다"
-            )
+            raise NotFoundError("존재하지 않는 게시판입니다")
         if not self.board_crud.check_board_access(db, current_user.id, board_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="해당 게시판에 게시글을 작성할 권한이 없습니다"
-            )
+            raise ForbiddenError("해당 게시판에 게시글을 작성할 권한이 없습니다")
         try:
             db_post = self.post_crud.create_with_user(
                 db, obj_in=request, owner_id=current_user.id, board_id=board_id
@@ -59,10 +56,7 @@ class PostService:
 
         except IntegrityError:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="게시글 생성에 실패했습니다"
-            )
+            raise ConflictError("게시글 생성에 실패했습니다")
 
     def list(self, board_id: int, current_user: CurrentUser, db: Session, sort: PostSortOption = PostSortOption.created_at):
         """게시판의 게시글들의 SQLAlchemy Query 반환 (Cursor Pagination용)
@@ -79,17 +73,11 @@ class PostService:
         # 게시판이 존재하고 접근 가능한지 확인
         board = self.board_crud.get(db, id=board_id)
         if not board:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="존재하지 않는 게시판입니다"
-            )
-            
+            raise NotFoundError("존재하지 않는 게시판입니다")
+
         # 비공개 게시판이면서 소유자가 아닌 경우 접근 거부
         if not board.public and board.owner_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="해당 게시판에 접근할 권한이 없습니다"
-            )
+            raise ForbiddenError("해당 게시판에 접근할 권한이 없습니다")
             
         return self.post_crud.get_accessible_posts(db, current_user.id, board_id, sort)
 
@@ -105,15 +93,12 @@ class PostService:
             PostResponse: 게시글 정보
 
         Raises:
-            HTTPException: 권한 없음 시 403, 존재하지 않음 시 404
+            HTTPException: 권한 없음 시 403
         """
         post = self.post_crud.get_accessible_post(db, current_user.id, post_id)
         if not post:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="게시글을 찾을 수 없거나 접근 권한이 없습니다"
-            )
-        
+            raise ForbiddenError("게시글을 찾을 수 없거나 접근 권한이 없습니다")
+
         return PostResponse(
             id=post.id,
             title=post.title,
@@ -141,15 +126,9 @@ class PostService:
         """
         post = self.post_crud.get(db, id=post_id)
         if not post:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="게시글을 찾을 수 없습니다"
-            )
+            raise NotFoundError("게시글을 찾을 수 없습니다")
         if post.owner_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="게시글을 수정할 권한이 없습니다"
-            )
+            raise ForbiddenError("게시글을 수정할 권한이 없습니다")
         try:
             updated_post = self.post_crud.update(db, db_obj=post, obj_in=request)
             db.commit()
@@ -163,13 +142,10 @@ class PostService:
                 created_at=updated_post.created_at,
                 updated_at=updated_post.updated_at
             )
-            
+
         except IntegrityError:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="게시글 수정에 실패했습니다"
-            )
+            raise ConflictError("게시글 수정에 실패했습니다")
 
     async def delete(self, post_id: int, current_user: CurrentUser, db: Session) -> None:
         """게시글 삭제
@@ -184,22 +160,14 @@ class PostService:
         """
         post = self.post_crud.get(db, id=post_id)
         if not post:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="게시글을 찾을 수 없습니다"
-            )
+            raise NotFoundError("게시글을 찾을 수 없습니다")
         if post.owner_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="게시글을 삭제할 권한이 없습니다"
-            )
+            raise ForbiddenError("게시글을 삭제할 권한이 없습니다")
 
         try:
             self.post_crud.delete(db, id=post_id)
             db.commit()
         except Exception as e:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="게시글 삭제에 실패했습니다"
-            )
+            logger.error(f"게시글 삭제 중 오류 발생: {e}")
+            raise InternalServerError("게시글 삭제에 실패했습니다")

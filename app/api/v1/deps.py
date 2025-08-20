@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from sqlalchemy.orm import Session
@@ -11,8 +11,11 @@ from app.services.auth import AuthService
 from app.services.board import BoardService
 from app.services.post import PostService
 from app.models.user import User
-from app.redis.session import get_session
+from app.redis.session import get_session, validate_session
 from app.core.security import decode_access_token
+from app.core.exceptions import (
+    AuthenticationError
+)
 
 
 # HTTP Bearer 토큰 스키마
@@ -40,37 +43,23 @@ async def get_current_user(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> User:
     """현재 로그인된 사용자 조회"""
-    # JWT 토큰에서 사용자 ID 추출
     try:
         payload = decode_access_token(credentials.credentials)
         user_id: str = payload.get("user_id")
         if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="토큰이 유효하지 않습니다",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise AuthenticationError("사용자 ID가 없습니다")
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="토큰이 유효하지 않습니다",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    # Redis에서 세션 확인
+        raise AuthenticationError("토큰이 유효하지 않습니다")
+
     session_data = get_session(int(user_id))
     if not session_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="세션이 만료되었습니다",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    # 데이터베이스에서 사용자 조회
+        raise AuthenticationError("세션이 만료되었습니다")
+
+    if not validate_session(int(user_id), credentials.credentials):
+        raise AuthenticationError("세션이 유효하지 않습니다")
+
     user = auth_service.get_user_by_id(user_id=int(user_id), db=db)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="사용자를 찾을 수 없습니다",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise AuthenticationError("사용자를 찾을 수 없습니다")
 
     return user

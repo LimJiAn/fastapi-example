@@ -10,14 +10,6 @@ class AuthenticationError(HTTPException):
         )
 
 
-class PermissionError(HTTPException):
-    def __init__(self, detail: str = "Not enough permissions"):
-        super().__init__(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=detail,
-        )
-
-
 class NotFoundError(HTTPException):
     def __init__(self, detail: str = "Item not found"):
         super().__init__(
@@ -34,9 +26,23 @@ class BadRequestError(HTTPException):
         )
 
 
+class ForbiddenError(HTTPException):
+    def __init__(self, detail: str = "Forbidden"):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=detail,
+        )
+
 class ConflictError(HTTPException):
     def __init__(self, detail: str = "Conflict error"):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
+            detail=detail,
+        )
+
+class InternalServerError(HTTPException):
+    def __init__(self, detail: str = "Internal server error"):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=detail,
         )

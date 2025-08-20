@@ -1,16 +1,19 @@
+import logging
 from typing import Optional
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, status
 
 from app.crud.user import CRUDUser
 from app.models.user import User
 from app.schemas.auth import SignUpRequest, LoginRequest, SignUpResponse, LoginResponse, CurrentUser, LogoutResponse, UserInfo
 from app.schemas.user import UserCreate
 from app.core.security import create_access_token
+from app.core.exceptions import AuthenticationError, ConflictError, InternalServerError
 from app.redis.session import create_session, delete_session
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AuthService:
     """인증 관련 서비스"""
@@ -29,15 +32,12 @@ class AuthService:
             SignUpResponse: 회원가입 응답
 
         Raises:
-            HTTPException: 이메일 중복 시 409 에러
+            HTTPException: 이메일 중복 시 409
         """
         try:
             user = self.user_crud.get_by_email(db, email=request.email)
             if user:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="이미 존재하는 이메일입니다"
-                )
+                raise ConflictError("이미 존재하는 이메일입니다")
             new_user = self.user_crud.create(
                 db, obj_in=UserCreate(
                     fullname=request.fullname,
@@ -54,12 +54,10 @@ class AuthService:
             )
         except IntegrityError:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="회원가입 중 오류가 발생했습니다"
-            )
-        except Exception:
+            raise ConflictError("회원가입 중 오류가 발생했습니다")
+        except Exception as e:
             db.rollback()
+            logger.error(f"회원가입 중 오류 발생: {e}")
             raise
 
     async def login(self, request: LoginRequest, db: Session) -> LoginResponse:
@@ -73,17 +71,13 @@ class AuthService:
             LoginResponse: 로그인 응답 (액세스 토큰 포함)
 
         Raises:
-            HTTPException: 인증 실패 시 401 에러
+            HTTPException: 인증 실패 시 401
         """
         user = self.user_crud.authenticate(db, email=request.email, password=request.password)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="이메일 또는 비밀번호가 올바르지 않습니다"
-            )
+            raise AuthenticationError("이메일 또는 비밀번호가 올바르지 않습니다")
         access_token = create_access_token(data={"user_id": str(user.id)})
         try:
-            # Redis에 세션 저장
             user_info = {
                 "id": user.id,
                 "email": user.email,
@@ -92,10 +86,8 @@ class AuthService:
             }
             create_session(user.id, access_token, user_info)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="로그인 중 오류가 발생했습니다"
-            )
+            logger.error(f"로그인 중 오류 발생: {e}")
+            raise InternalServerError("로그인 중 오류가 발생했습니다")
         return LoginResponse(
             access_token=access_token,
             user=UserInfo(
