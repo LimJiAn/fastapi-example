@@ -1,5 +1,7 @@
 import redis
 import json
+import logging
+
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from app.core.config import settings
@@ -10,6 +12,9 @@ redis_client = redis.Redis.from_url(
     decode_responses=True,
     health_check_interval=30,
 )
+if not redis_client.ping():
+    logging.error("Redis server is not reachable")
+    raise ConnectionError("Redis server is not reachable")
 
 # 세션 생성
 def create_session(user_id: int, access_token: str, user_info: Dict[str, Any]) -> str:
@@ -43,11 +48,9 @@ def validate_session(user_id: int, access_token: str) -> bool:
     if not session_data:
         return False
     
-    # 토큰 일치 확인
     if session_data.get("access_token") != access_token:
         return False
 
-    # 만료 시간 확인
     expired_str = session_data.get("expired")
     if not expired_str:
         delete_session(user_id)
