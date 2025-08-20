@@ -40,8 +40,3 @@ class PostResponse(PostBase):
 
 
 PostListResponse = CursorPage[PostResponse]
-
-
-class PostInDB(PostResponse):
-    """데이터베이스의 게시글 스키마"""
-    pass

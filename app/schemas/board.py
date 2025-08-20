@@ -42,8 +42,3 @@ class BoardResponse(BoardBase):
 
 
 BoardListResponse = CursorPage[BoardResponse]
-
-
-class BoardInDB(BoardResponse):
-    """데이터베이스의 게시판 스키마"""
-    pass
