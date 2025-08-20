@@ -98,6 +98,7 @@ elice-board-api/
 │   │   ├── config.py           # 환경 설정
 │   │   ├── security.py         # 보안 (JWT, 암호화)
 │   │   └── exceptions.py       # 커스텀 예외 처리
+│   │   └── session.py          # client session 관리
 │   ├── crud/                   # 데이터 접근 계층 (CRUD)
 │   │   ├── base.py             # 기본 CRUD 클래스 (Generic)
 │   │   ├── user.py             # 사용자 CRUD 연산
@@ -111,7 +112,8 @@ elice-board-api/
 │   │   ├── user.py             # 사용자 모델
 │   │   ├── board.py            # 게시판 모델
 │   │   └── post.py             # 게시글 모델
-│   ├── redis/                  # SQLAlchemy 모델
+│   ├── redis/                  # Redis
+│   │   ├── session.py          # Redis 세션 관리
 │   ├── schemas/                # Pydantic 스키마
 │   ├── services/               # 비즈니스 로직 계층
 │   │   ├── auth.py             # 인증 서비스 (JWT, 로그인)
