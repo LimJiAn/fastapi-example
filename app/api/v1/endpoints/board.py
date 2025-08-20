@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from fastapi_pagination.cursor import CursorParams
 from fastapi_pagination.ext.sqlalchemy import paginate
-
 
 from app.db.session import get_db
 from app.services.board import BoardService
@@ -15,6 +13,7 @@ from app.schemas.board import (
     BoardListResponse,
     BoardSortOption
 )
+from app.schemas.pagination import TotalCursorParams
 from app.schemas.auth import CurrentUser
 
 
@@ -45,7 +44,7 @@ async def create(
 
 @router.get("/", response_model=BoardListResponse)
 async def list(
-    params: CursorParams = Depends(),
+    params: TotalCursorParams = Depends(),
     sort: BoardSortOption = Query(
         BoardSortOption.created_at,
         description="정렬 옵션 (created: 생성일순, posts: 게시글수순)"
@@ -69,9 +68,8 @@ async def list(
     Returns:
         BoardListResponse: 게시판 목록 정보
     """
-    # SQLAlchemy Query를 가져와서 paginate 함수에 전달
     query = board_service.list(current_user, db, sort)
-    return paginate(db, query, params)
+    return paginate(query, params)
 
 @router.get("/{board_id}", response_model=BoardResponse)
 async def get(

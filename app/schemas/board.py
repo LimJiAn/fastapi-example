@@ -4,8 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from fastapi_pagination.cursor import CursorPage
-
+from app.schemas.pagination import CursorPageCustom
 
 class BoardSortOption(str, Enum):
     """게시판 목록 정렬 옵션"""
@@ -41,4 +40,4 @@ class BoardResponse(BoardBase):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
-BoardListResponse = CursorPage[BoardResponse]
+BoardListResponse = CursorPageCustom[BoardResponse]

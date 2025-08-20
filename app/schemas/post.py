@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from enum import Enum
 
-from fastapi_pagination.cursor import CursorPage
+from app.schemas.pagination import CursorPageCustom
 
 
 class PostSortOption(str, Enum):
@@ -39,4 +39,4 @@ class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-PostListResponse = CursorPage[PostResponse]
+PostListResponse = CursorPageCustom[PostResponse]

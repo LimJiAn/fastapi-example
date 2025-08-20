@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Path, status
 from sqlalchemy.orm import Session
 
-from fastapi_pagination.cursor import CursorParams
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from app.db.session import get_db
@@ -14,6 +13,7 @@ from app.schemas.post import (
     PostListResponse,
     PostSortOption
 )
+from app.schemas.pagination import TotalCursorParams
 from app.schemas.auth import CurrentUser
 
 
@@ -48,7 +48,7 @@ async def create(
 @router.get("/boards/{board_id}/posts", response_model=PostListResponse)
 async def list(
     board_id: int = Path(..., description="게시판 ID"),
-    params: CursorParams = Depends(),
+    params: TotalCursorParams = Depends(),
     sort: PostSortOption = Query(
         PostSortOption.created_at, 
         description="정렬 옵션 (created_at: 생성일순)"
@@ -75,9 +75,8 @@ async def list(
         HTTPException 404: 게시판 없음
         HTTPException 403: 접근 권한 없음
     """
-    # SQLAlchemy Query를 가져와서 paginate 함수에 전달
     query = post_service.list(board_id, current_user, db, sort)
-    return paginate(db, query, params)
+    return paginate(query, params)
 
 @router.get("/posts/{post_id}", response_model=PostResponse)
 async def get(

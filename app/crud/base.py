@@ -12,10 +12,7 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         """
-        CRUD object with default methods to Create, Read, Update, Delete (CRUD).
-        
-        **Parameters**
-        
+        CRUDBase 공통 메서드 제공
         * `model`: A SQLAlchemy model class
         * `schema`: A Pydantic model (schema) class
         """
@@ -31,10 +28,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
-        db_obj = self.model(**obj_in_data)  # type: ignore
+        db_obj = self.model(**obj_in_data)
         db.add(db_obj)
-        db.flush()  # DB에 보내지만 commit하지 않음
-        db.refresh(db_obj)  # ID 등 생성된 값 가져오기
+        db.flush()
+        db.refresh(db_obj)
         return db_obj
 
     def update(
@@ -53,15 +50,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
-        db.flush()  # DB에 보내지만 commit하지 않음
+        db.flush()
         db.refresh(db_obj)
         return db_obj
 
     def delete(self, db: Session, *, id: int) -> ModelType:
-        """
-        Delete an object by ID.
-        """
         obj = db.query(self.model).get(id)
         db.delete(obj)
-        db.flush()  # DB에 보내지만 commit하지 않음
+        db.flush()
         return obj
