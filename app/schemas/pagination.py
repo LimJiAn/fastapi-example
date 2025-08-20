@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic
+from typing import TypeVar
 from fastapi import Query
 from fastapi_pagination.cursor import CursorPage, CursorParams
 from fastapi_pagination.bases import CursorRawParams

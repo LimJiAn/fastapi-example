@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, or_, select
 
 from app.crud.base import CRUDBase
 from app.models.post import Post
