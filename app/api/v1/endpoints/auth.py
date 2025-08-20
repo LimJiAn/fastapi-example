@@ -9,7 +9,8 @@ from app.schemas.auth import (
     LoginRequest, 
     SignUpResponse, 
     LoginResponse, 
-    LogoutResponse
+    LogoutResponse,
+    CurrentUser
 )
 from app.models.user import User
 
@@ -33,8 +34,7 @@ async def signup(
         SignUpResponse: 생성된 사용자 정보
 
     Raises:
-        HTTPException 409: 이미 존재하는 이메일
-        HTTPException 400: 유효하지 않은 입력 데이터
+        HTTPException 409: 이메일 중복
     """
     return await auth_service.signup(user_data, db)
 
@@ -76,8 +76,6 @@ async def logout(
     Raises:
         HTTPException 401: 유효하지 않은 토큰
     """
-    # User 모델을 CurrentUser 스키마로 변환
-    from app.schemas.auth import CurrentUser
     current_user_data = CurrentUser(
         id=current_user.id,
         email=current_user.email,

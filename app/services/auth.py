@@ -32,7 +32,7 @@ class AuthService:
             SignUpResponse: 회원가입 응답
 
         Raises:
-            HTTPException: 이메일 중복 시 409
+            HTTPException: 이메일 중복 409
         """
         try:
             user = self.user_crud.get_by_email(db, email=request.email)
@@ -71,7 +71,7 @@ class AuthService:
             LoginResponse: 로그인 응답 (액세스 토큰 포함)
 
         Raises:
-            HTTPException: 인증 실패 시 401
+            HTTPException: 인증 실패 401
         """
         user = self.user_crud.authenticate(db, email=request.email, password=request.password)
         if not user:
@@ -107,6 +107,9 @@ class AuthService:
 
         Returns:
             LogoutResponse: 로그아웃 응답
+
+        Raises:
+            HTTPException 401: 유효하지 않은 토큰
         """
         delete_session(current_user.id)
         return LogoutResponse(

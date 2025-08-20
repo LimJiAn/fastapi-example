@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Path
+from fastapi import APIRouter, Depends, Query, Path, status
 from sqlalchemy.orm import Session
 
 from fastapi_pagination.cursor import CursorParams
@@ -19,7 +19,7 @@ from app.schemas.auth import CurrentUser
 
 router = APIRouter()
 
-@router.post("/boards/{board_id}/posts", response_model=PostResponse)
+@router.post("/boards/{board_id}/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 async def create(
     board_id: int = Path(..., description="게시판 ID"),
     post_data: PostCreate = ...,
@@ -34,7 +34,14 @@ async def create(
     - **title**: 게시글 제목
     - **content**: 게시글 내용
     
-    권한: 로그인한 사용자, 접근 가능한 게시판에만 생성 가능
+    권한: 로그인한 사용자 + 접근 가능한 게시판에만 생성 가능
+
+    Returns:
+        PostResponse: 생성된 게시글 정보
+
+    Raises:
+        HTTPException 404: 게시판 없음
+        HTTPException 403: 접근 권한 없음
     """
     return await post_service.create(board_id, post_data, current_user, db)
 
@@ -58,8 +65,15 @@ async def list(
     - **size**: 페이지당 항목 수 (기본값: 50)
     - **sort**: 정렬 옵션
       - created_at: 생성일 순 (최신순, 기본값)
-    
-    권한: 로그인한 사용자, 접근 가능한 게시판의 게시글만 조회 가능
+
+    권한: 로그인한 사용자 + 접근 가능한 게시판의 게시글만 조회 가능
+
+    Returns:
+        PostListResponse: 게시글 목록 정보
+
+    Raises:
+        HTTPException 404: 게시판 없음
+        HTTPException 403: 접근 권한 없음
     """
     # SQLAlchemy Query를 가져와서 paginate 함수에 전달
     query = post_service.list(board_id, current_user, db, sort)
@@ -77,7 +91,14 @@ async def get(
     
     - **post_id**: 조회할 게시글 ID
 
-    권한: 로그인한 사용자, 접근 가능한 게시판의 게시글만 조회 가능
+    권한: 로그인한 사용자 + 접근 가능한 게시판의 게시글만 조회 가능
+
+    Returns:
+        PostResponse: 게시글 정보
+
+    Raises:
+        HTTPException 404: 게시글 없음
+        HTTPException 403: 접근 권한 없음
     """
     return await post_service.get(post_id, current_user, db)
 
@@ -97,10 +118,17 @@ async def update(
     - **content**: 새로운 내용 (선택사항)
     
     권한: 게시글 작성자만 수정 가능
+
+    Returns:
+        PostResponse: 수정된 게시글 정보
+
+    Raises:
+        HTTPException 403: 권한 없음
+        HTTPException 404: 게시글 없음
     """
     return await post_service.update(post_id, post_update, current_user, db)
 
-@router.delete("/posts/{post_id}")
+@router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
     post_id: int = Path(..., description="게시글 ID"),
     current_user: CurrentUser = Depends(get_current_user),
@@ -114,5 +142,4 @@ async def delete(
     
     권한: 게시글 작성자만 삭제 가능
     """
-    await post_service.delete(post_id, current_user, db)
-    return {"message": "게시글이 성공적으로 삭제되었습니다"}
+    return await post_service.delete(post_id, current_user, db)

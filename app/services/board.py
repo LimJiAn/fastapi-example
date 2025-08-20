@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app.crud.board import CRUDBoard
-from app.schemas.board import BoardCreate, BoardUpdate, BoardResponse, BoardSortOption
+from app.schemas.board import (
+    BoardCreate,
+    BoardUpdate,
+    BoardResponse,
+    BoardSortOption
+)
 from app.schemas.auth import CurrentUser
 from app.core.exceptions import (
     NotFoundError, ForbiddenError, ConflictError, InternalServerError
@@ -83,7 +88,7 @@ class BoardService:
             BoardResponse: 게시판 정보
 
         Raises:
-            HTTPException: 권한 없음 시 403, 존재하지 않음 시 404
+            HTTPException: 권한 없음 시 403, 존재하지 않음 404
         """
         board = self.board_crud.get(db, id=board_id)
         if not board:
@@ -114,7 +119,7 @@ class BoardService:
             BoardResponse: 수정된 게시판 정보
 
         Raises:
-            HTTPException: 권한 없음 시 403, 존재하지 않음 시 404, 중복 시 409
+            HTTPException: 권한 없음 시 403, 존재하지 않음 404, 중복 시 409
         """
         board = self.board_crud.get(db, id=board_id)
         if not board:
@@ -155,7 +160,7 @@ class BoardService:
             dict: 삭제 완료 메시지
 
         Raises:
-            HTTPException: 권한 없음 시 403, 존재하지 않음 시 404, 잘못된 요청 시 400
+            HTTPException: 권한 없음 시 403, 존재하지 않음 404
         """
         board = self.board_crud.get(db, id=board_id)
         if not board:

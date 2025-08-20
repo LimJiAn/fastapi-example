@@ -5,7 +5,12 @@ from sqlalchemy.exc import IntegrityError
 
 from app.crud.post import CRUDPost
 from app.crud.board import CRUDBoard
-from app.schemas.post import PostCreate, PostUpdate, PostResponse, PostSortOption
+from app.schemas.post import (
+    PostCreate,
+    PostUpdate,
+    PostResponse,
+    PostSortOption
+)
 from app.schemas.auth import CurrentUser
 from app.core.exceptions import NotFoundError, ForbiddenError, ConflictError, InternalServerError
 
@@ -32,7 +37,7 @@ class PostService:
             PostResponse: 생성된 게시글 정보
 
         Raises:
-            HTTPException: 게시판 없을 시 404, 게시판 접근 권한 없음 시 403
+            HTTPException: 게시판 없음 404, 게시판 접근 권한 없음 시 403
         """
         board = self.board_crud.get(db, id=board_id)
         if not board:
@@ -122,7 +127,7 @@ class PostService:
             PostResponse: 수정된 게시글 정보
 
         Raises:
-            HTTPException: 권한 없음 시 403, 존재하지 않음 시 404
+            HTTPException: 권한 없음 시 403, 존재하지 않음 404
         """
         post = self.post_crud.get(db, id=post_id)
         if not post:

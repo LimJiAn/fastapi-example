@@ -11,7 +11,7 @@ from app.services.auth import AuthService
 from app.services.board import BoardService
 from app.services.post import PostService
 from app.models.user import User
-from app.redis.session import get_session, validate_session
+from app.redis.session import validate_session
 from app.core.security import decode_access_token
 from app.core.exceptions import (
     AuthenticationError
@@ -50,10 +50,6 @@ async def get_current_user(
             raise AuthenticationError("사용자 ID가 없습니다")
     except Exception:
         raise AuthenticationError("토큰이 유효하지 않습니다")
-
-    session_data = get_session(int(user_id))
-    if not session_data:
-        raise AuthenticationError("세션이 만료되었습니다")
 
     if not validate_session(int(user_id), credentials.credentials):
         raise AuthenticationError("세션이 유효하지 않습니다")
