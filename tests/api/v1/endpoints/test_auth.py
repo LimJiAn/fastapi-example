@@ -103,7 +103,7 @@ class TestLogin:
         """로그인 성공 테스트."""
         login_data = {
             "email": test_user.email,
-            "password": "testpassword123",  # 해싱되지 않은 비밀번호
+            "password": "testpassword123",
         }
 
         response = client.post("/api/v1/auth/login", json=login_data)
@@ -221,7 +221,7 @@ class TestAuthEndpoints:
         from datetime import timedelta
         # 만료된 토큰 생성 (즉시 만료)
         expired_token = create_access_token(
-            data={"sub": str(test_user.id)}, expires_delta=timedelta(minutes=-1)
+            data={"user_id": str(test_user.id)}, expires_delta=timedelta(minutes=-1)
         )
         
         headers = {"Authorization": f"Bearer {expired_token}"}
