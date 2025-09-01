@@ -42,7 +42,6 @@ make seed
 
 ### 4. 서버 접속
 - **API 문서**: http://localhost:8000/docs
-- **서버 상태**: http://localhost:8000/health
 
 ## 🛠 개발 명령어
 
@@ -81,7 +80,7 @@ make help       # 사용 가능한 모든 명령어 확인
 ## 🏗️ 프로젝트 구조
 
 ```
-elice-board-api/
+fastapi-example/
 ├── app/                        # 메인 애플리케이션
 │   ├── api/v1/                 # API v1 라우터
 │   │   ├── endpoints/          # API 엔드포인트
@@ -155,12 +154,6 @@ elice-board-api/
 - **Redis**: 세션 스토리지
 - **Uvicorn**: ASGI 서버
 - **Pydantic** v2: 데이터 검증
-
-## ⚡ 주요 특징
-
-### 🔄 Cursor Pagination
-- 대용량 데이터에 최적화된 페이징 시스템
-- 데이터베이스 인덱스 최적화로 빠른 성능
 
 ## 🧪 테스트
 
