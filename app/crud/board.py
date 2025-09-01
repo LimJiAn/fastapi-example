@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from app.crud.base import CRUDBase
 from app.models.board import Board
@@ -50,16 +50,16 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
         if sort == BoardSortOption.posts:
             # 게시글 수로 정렬 (많은순) - 트리거로 관리되는 posts_count 컬럼 사용
             stmt = stmt.order_by(Board.posts_count.desc(), Board.id.desc())
-        # elif sort == BoardSortOption.name:
-        #     # 이름순 정렬
-        #     stmt = stmt.order_by(Board.name.asc(), Board.id.desc())
-        # elif sort == BoardSortOption.updated:
-        #     # 수정일순 정렬
-        #     stmt = stmt.order_by(
-        #         func.coalesce(Board.updated_at, Board.created_at).desc(),
-        #         Board.id.desc()
-        #     )
-        else:  # sort == BoardSortOption.created_at (기본값)
+        elif sort == BoardSortOption.name:
+            # 이름순 정렬
+            stmt = stmt.order_by(Board.name.asc(), Board.id.desc())
+        elif sort == BoardSortOption.updated_at:
+            # 수정일순 정렬
+            stmt = stmt.order_by(
+                func.coalesce(Board.updated_at, Board.created_at).desc(),
+                Board.id.desc()
+            )
+        else:
             # 생성일순 정렬 (최신순)
             stmt = stmt.order_by(Board.created_at.desc(), Board.id.desc())
         
@@ -74,18 +74,14 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
             return False
         return board.public or board.owner_id == user_id
 
-    def increment_posts_count(self, db: Session, board_id: int, by: int = 1) -> None:
-        """boards.posts_count 증가"""
-        stmt = update(Board).where(Board.id == board_id).values(
-            posts_count=(Board.posts_count + by)
+    def change_posts_count(self, db: Session, board_id: int, delta: int = 1) -> None:
+        """boards.posts_count 증가/감소 (delta 양수면 증가, 음수면 감소). 음수로 내려가지 않음."""
+        new_value = sa.case(
+            [(Board.posts_count + delta < 0, 0)],
+            else_=Board.posts_count + delta
         )
-        db.execute(stmt)
-
-    def decrement_posts_count(self, db: Session, board_id: int, by: int = 1) -> None:
-        """boards.posts_count 감소"""
-        # Use a raw SQL expression for GREATEST to ensure compatibility
         stmt = update(Board).where(Board.id == board_id).values(
-            posts_count=sa.func.greatest(Board.posts_count - by, 0)
+            posts_count=new_value
         )
         db.execute(stmt)
 

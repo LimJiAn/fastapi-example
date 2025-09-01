@@ -52,12 +52,12 @@ class CRUDPost(CRUDBase[Post, PostCreate, PostUpdate]):
             )
         )
         # 정렬 옵션에 따른 처리
-        # if sort == PostSortOption.title:
-        #     제목순 정렬
-        #     stmt = stmt.order_by(Post.title.asc(), Post.id.desc())
-        # else:
-        #   생성일순 정렬 (최신순)
-        stmt = stmt.order_by(Post.created_at.desc(), Post.id.desc())
+        if sort == PostSortOption.title:
+            # 제목순 정렬
+            stmt = stmt.order_by(Post.title.asc(), Post.id.desc())
+        else:
+            # 생성일순 정렬 (최신순)
+            stmt = stmt.order_by(Post.created_at.desc(), Post.id.desc())
 
         return stmt
 

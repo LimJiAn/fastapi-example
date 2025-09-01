@@ -47,7 +47,7 @@ def list(
     params: TotalCursorParams = Depends(),
     sort: BoardSortOption = Query(
         BoardSortOption.created_at,
-        description="정렬 옵션 (created: 생성일순, posts: 게시글수순)"
+        description="정렬 옵션 (created_at: 생성일순, posts: 게시글수순)"
     ),
     current_user: CurrentUser = Depends(get_current_user),
     board_service: BoardService = Depends(get_board_service),
@@ -60,9 +60,11 @@ def list(
     - **cursor**: 커서 토큰 (다음/이전 페이지용)
     - **size**: 페이지당 항목 수 (기본값: 20)
     - **sort**: 정렬 옵션
-      - created: 생성일 순 (최신순, 기본값)
+      - created_at: 생성일 순 (최신순, 기본값)
       - posts: 게시글 수 순 (많은순)
-    
+      - updated_at: 수정일 순
+      - name: 이름 순
+
     권한: 로그인한 사용자, 본인이 생성한 게시판 + 공개 게시판만 조회 가능
 
     Returns:

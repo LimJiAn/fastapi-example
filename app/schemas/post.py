@@ -9,7 +9,7 @@ from app.schemas.pagination import CursorPageCustom
 class PostSortOption(str, Enum):
     """게시글 목록 정렬 옵션"""
     created_at = "created_at"    # 생성일 순 (최신순, 기본값)
-    # title = "title"              # 제목 순
+    title = "title"              # 제목 순
 
 
 class PostBase(BaseModel):
