@@ -2,7 +2,7 @@
 
 # 기본 타겟 - 도움말 표시
 help:
-	@echo "Elice Board API 개발 도구"
+	@echo "Board API 개발 도구"
 	@echo ""
 	@echo "🐳 Docker:"
 	@echo "  make build         Docker 이미지 빌드"

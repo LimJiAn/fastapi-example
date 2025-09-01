@@ -8,7 +8,7 @@ class Settings:
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = ENVIRONMENT == "development"
     
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Elice Board API")
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Board API")
     VERSION: str = os.getenv("VERSION", "1.0.0")
 
     API_PATH: str = os.getenv("API_PATH", "/api/v1")
@@ -27,7 +27,7 @@ class Settings:
         "redis://redis:6379/0"
     )
     # JWT 설정
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "elice-secret-key")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "secret-key")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 

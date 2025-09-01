@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "elice-board-api"
+name = "board-api"
 version = "1.0.0"
 description = "FastAPI Board API with Redis Session Management"
 authors = ["LimJiAn <jian1990@example.com>"]
