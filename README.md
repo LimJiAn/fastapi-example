@@ -1,5 +1,3 @@
-# 🚀 Elice Board API
-
 ## 📋 목차
 
 - [주요 기능](#-주요-기능)
@@ -15,16 +13,13 @@
 - 🔐 **JWT 기반 인증시스템**: 안전한 사용자 인증 및 권한 관리
 - 📋 **게시판 관리**: 공개/비공개 게시판 생성 및 관리  
 - 📝 **게시글 CRUD**: 게시글 생성, 조회, 수정, 삭제
-- 🔄 **Cursor Pagination**: 대용량 데이터 최적화된 페이징
-- ⚡ **인덱스 최적화**: 데이터베이스 성능 최적화
-- 🔒 **권한 기반 접근제어**: 소유자/공개 게시판별 접근 권한
 
 ## 🚀 빠른 시작
 
 ### 1. 저장소 클론
 ```bash
-git clone https://github.com/LimJiAn/elice-board-api.git
-cd elice-board-api
+git clone https://github.com/LimJiAn/fastapi-example
+cd fastapi-example
 ```
 
 ### 2. 환경 변수 설정
@@ -167,15 +162,6 @@ elice-board-api/
 - 대용량 데이터에 최적화된 페이징 시스템
 - 데이터베이스 인덱스 최적화로 빠른 성능
 
-### 📊 실시간 통계
-- PostgreSQL 트리거를 활용한 게시글 수 자동 관리
-- 별도 배치 작업 없이 실시간 업데이트
-
-### 🔒 권한 기반 접근제어
-- JWT 토큰 기반 인증
-- 게시판 소유자 권한 관리
-- 공개/비공개 게시판 접근 제어
-
 ## 🧪 테스트
 
 ### 테스트 실행
@@ -220,28 +206,6 @@ bash scripts/create_dummy_data.sh 50 100 1000
 - `boards.name`: UNIQUE 제약  
 - `posts.board_id`: CASCADE DELETE
 - `posts.owner_id`: CASCADE DELETE
-
-## 🚀 성능 최적화
-
-### 트리거 기반 게시글 수 관리
-```sql
--- PostgreSQL 트리거로 실시간 posts_count 관리
-CREATE TRIGGER trigger_update_board_posts_count
-    AFTER INSERT OR UPDATE OR DELETE ON posts
-    FOR EACH ROW
-    EXECUTE FUNCTION update_board_posts_count();
-```
-
-### 성능 비교
-```sql
--- 이전: 매번 조인과 집계 (느림)
-SELECT b.*, COUNT(p.id) as post_count
-FROM boards b LEFT JOIN posts p ON b.id = p.board_id
-GROUP BY b.id ORDER BY post_count DESC;
-
--- 현재: 미리 계산된 컬럼 사용 (빠름)
-SELECT * FROM boards ORDER BY posts_count DESC;
-```
 
 ## 🔧 개발 환경 설정
 
