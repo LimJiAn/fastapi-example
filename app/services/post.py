@@ -48,6 +48,7 @@ class PostService:
             db_post = self.post_crud.create_with_user(
                 db, obj_in=request, owner_id=current_user.id, board_id=board_id
             )
+            self.board_crud.increment_posts_count(db, board_id=board_id, by=1)
             db.commit()
             return PostResponse(
                 id=db_post.id,
@@ -171,6 +172,7 @@ class PostService:
 
         try:
             self.post_crud.delete(db, id=post_id)
+            self.board_crud.decrement_posts_count(db, board_id=post.board_id, by=1)
             db.commit()
         except Exception as e:
             db.rollback()

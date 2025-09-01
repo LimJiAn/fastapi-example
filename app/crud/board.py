@@ -1,10 +1,12 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+import sqlalchemy as sa
 from sqlalchemy import or_, select
 
 from app.crud.base import CRUDBase
 from app.models.board import Board
 from app.schemas.board import BoardCreate, BoardUpdate, BoardSortOption
+from sqlalchemy import update
 
 
 class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
@@ -71,5 +73,20 @@ class CRUDBoard(CRUDBase[Board, BoardCreate, BoardUpdate]):
         if not board:
             return False
         return board.public or board.owner_id == user_id
+
+    def increment_posts_count(self, db: Session, board_id: int, by: int = 1) -> None:
+        """boards.posts_count 증가"""
+        stmt = update(Board).where(Board.id == board_id).values(
+            posts_count=(Board.posts_count + by)
+        )
+        db.execute(stmt)
+
+    def decrement_posts_count(self, db: Session, board_id: int, by: int = 1) -> None:
+        """boards.posts_count 감소"""
+        # Use a raw SQL expression for GREATEST to ensure compatibility
+        stmt = update(Board).where(Board.id == board_id).values(
+            posts_count=sa.func.greatest(Board.posts_count - by, 0)
+        )
+        db.execute(stmt)
 
 board = CRUDBoard(Board)
