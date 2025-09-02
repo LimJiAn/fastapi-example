@@ -208,25 +208,31 @@ bash scripts/create_dummy_data.sh 50 100 1000
 make build && make up
 ```
 
-### 로컬 개발 (Poetry 사용)
+### 로컬 개발 (uv 사용)
 ```bash
-# 1. Poetry 설치 (처음 한 번만)
-curl -sSL https://install.python-poetry.org | python3 -
-export PATH="/Users/$USER/.local/bin:$PATH"
+# 1. uv 설치 (처음 한 번만)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 2. 의존성 설치
-poetry install
+# 2. 가상 환경 생성 및 활성화
+uv venv
+source .venv/bin/activate
+# 비활성화하려면 deactivate
 
-# 3. 환경 변수 설정
+# 3. 의존성 설치
+uv pip install -e .
+
+# 4. 환경 변수 설정
 cp .env.example .env
-# .env 파일 수정
+# .env 파일을 열어 DATABASE_URL과 REDIS_URL을 로컬 환경에 맞게 수정합니다.
+# DATABASE_URL=postgresql://developer:devpassword@127.0.0.1:25000/developer
+# REDIS_URL=redis://127.0.0.1:25100/0
 
-# 4. 데이터베이스만 시작
+# 5. 데이터베이스 및 Redis 실행
 docker-compose up -d postgres redis
 
-# 5. 마이그레이션 실행
-poetry run alembic upgrade head
+# 6. 마이그레이션 실행
+uv run alembic upgrade head
 
-# 6. 개발 서버 실행
-poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 7. 개발 서버 실행
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
