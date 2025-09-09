@@ -2,8 +2,9 @@
 name = "board-api"
 version = "1.0.0"
 description = "FastAPI Board API with Redis Session Management"
+requires-python = ">=3.13"
 authors = [
-    {name = "LimJiAn", email = ""},
+    {name = "LimJiAn", email = "jian1990@example.com"},
 ]
 dependencies = [
     "fastapi==0.116.1",
@@ -21,6 +22,9 @@ dependencies = [
     "fastapi-pagination==0.13.3",
     "sqlakeyset>=2.0.0",
 ]
+
+[project.scripts]
+start = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 [project.optional-dependencies]
 dev = [
